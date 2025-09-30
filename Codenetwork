@@ -1,0 +1,46 @@
+// A new function to handle both the LED and the button
+void COF_SDR_HOST_NetworkCall::updateStatusAndAddButton(int row, int col, bool state, 
+                                                       const QString &onColor, const QString &offColor,
+                                                       const QString &buttonText)
+{
+    // Check if a widget already exists to avoid creating duplicates
+    if (ui->TW_Multicast->cellWidget(row, col)) {
+        // You can update the existing widget if needed, e.g., change the LED color
+        QWidget* container = ui->TW_Multicast->cellWidget(row, col);
+        QLabel* led = container->findChild<QLabel*>("statusLED");
+        if (led) {
+            led->setStyleSheet(QString("border-radius: 6px; background-color: %1;").arg(state ? onColor : offColor));
+        }
+        return;
+    }
+
+    // 1. Create a container widget for the cell
+    QWidget *container = new QWidget();
+    QHBoxLayout *layout = new QHBoxLayout(container);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setAlignment(Qt::AlignCenter);
+
+    // 2. Create the LED using a QLabel with a stylesheet
+    QLabel *statusLED = new QLabel();
+    statusLED->setObjectName("statusLED"); // Set an object name to find it later
+    statusLED->setFixedSize(12, 12);
+    statusLED->setStyleSheet(QString("border-radius: 6px; background-color: %1;").arg(state ? onColor : offColor));
+    
+    // 3. Create the QPushButton
+    QPushButton *callButton = new QPushButton(buttonText);
+    callButton->setObjectName(QString("callButton_%1_%2").arg(row).arg(col));
+    
+    // 4. Add the widgets to the layout
+    layout->addWidget(statusLED);
+    layout->addWidget(callButton);
+
+    // Connect the button's signal
+    connect(callButton, &QPushButton::clicked, this, [this, row, col]() {
+        // This lambda function captures row and col to know which button was clicked
+        // Place your call logic here
+        qDebug() << "Call button clicked at row:" << row << ", col:" << col;
+    });
+
+    // 5. Set the container widget into the QTableWidget cell
+    ui->TW_Multicast->setCellWidget(row, col, container);
+}
